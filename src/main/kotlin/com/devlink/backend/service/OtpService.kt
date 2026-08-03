@@ -21,7 +21,7 @@ class OtpService(
     @Value("\${app.otp.length}") private val otpLength: Int
 ) {
 
-    /** Generates a fresh OTP, persists it, and emails it to the user. Called right after password check succeeds. */
+
     fun generateAndSendOtp(email: String) {
         val code = randomNumericCode(otpLength)
         val otp = EmailOtp(
@@ -33,14 +33,12 @@ class OtpService(
         emailService.sendOtpEmail(email, code, expiryMinutes.toInt())
     }
 
-    /** Verifies the code entered by the user against the most recent OTP issued for that email. */
+
     fun verifyOtp(email: String, submittedCode: String) {
         val otp = emailOtpRepository.findTopByEmailOrderByIdDesc(email)
             .orElseThrow { OtpNotFoundException() }
 
         if (otp.verified) {
-            // Already used — treat as valid to keep the flow idempotent on client retries,
-            // but do not re-verify a stale one after a new OTP has been requested.
             return
         }
 

@@ -36,7 +36,7 @@ class AuthService(
     @Value("\${app.jwt.refresh-token-expiry-ms}") private val refreshTokenExpiryMs: Long
 ) {
 
-    /** Step 1: POST /api/user/login — verify email + password, then email an OTP. No tokens issued yet. */
+
     @Transactional
     fun login(request: LoginRequest): LoginResponse {
         try {
@@ -58,7 +58,7 @@ class AuthService(
         )
     }
 
-    /** Step 2: POST /api/user/verify — confirm the OTP, then issue access + refresh tokens. */
+    /** POST /api/user/verify — confirm the OTP, then issue access + refresh tokens. */
     @Transactional
     fun verifyOtpAndIssueTokens(request: VerifyOtpRequest): AuthResponse {
         val user = userRepository.findByEmail(request.email)
@@ -108,8 +108,7 @@ class AuthService(
         )
     }
 
-    /** Matches the role-specific home screens in the mockups (student feed, teacher dashboard, recruiter home, admin). */
-    private fun homeRouteFor(role: Role): String = when (role) {
+       private fun homeRouteFor(role: Role): String = when (role) {
         Role.STUDENT -> "/home/student"
         Role.TEACHER -> "/home/teacher"
         Role.RECRUITER -> "/home/recruiter"

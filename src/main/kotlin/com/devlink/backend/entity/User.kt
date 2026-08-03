@@ -14,7 +14,6 @@ class User(
     @Column(nullable = false, unique = true)
     var email: String,
 
-    /** Always a BCrypt hash — never store or log the raw password. */
     @Column(nullable = false)
     var password: String,
 

@@ -19,7 +19,7 @@ import org.springframework.web.cors.CorsConfigurationSource
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @Configuration
-@EnableMethodSecurity // enables @PreAuthorize("hasRole('ADMIN')") on the admin controller
+@EnableMethodSecurity
 class SecurityConfig(
     private val userDetailsService: CustomUserDetailsService,
     private val jwtAuthFilter: JwtAuthFilter
@@ -42,7 +42,7 @@ class SecurityConfig(
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val config = CorsConfiguration().apply {
-            allowedOriginPatterns = listOf("*")   // tighten to the real app origin(s) in production
+            allowedOriginPatterns = listOf("*")
             allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
             allowedHeaders = listOf("*")
             allowCredentials = true
@@ -55,7 +55,7 @@ class SecurityConfig(
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .csrf { it.disable() } // stateless JWT API — no CSRF-vulnerable cookie session
+            .csrf { it.disable() }
             .cors { }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests { auth ->

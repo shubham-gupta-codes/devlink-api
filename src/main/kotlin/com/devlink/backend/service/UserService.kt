@@ -16,11 +16,6 @@ class UserService(
     private val passwordEncoder: PasswordEncoder
 ) {
 
-    /**
-     * Creates a login account for a student/teacher/recruiter/admin.
-     * Only reachable via /api/admin/user, which SecurityConfig locks to ROLE_ADMIN —
-     * this mirrors "only admin can create user" from the spec.
-     */
     @Transactional
     fun createUser(request: CreateUserRequest): UserResponse {
         if (userRepository.existsByEmail(request.email)) {
