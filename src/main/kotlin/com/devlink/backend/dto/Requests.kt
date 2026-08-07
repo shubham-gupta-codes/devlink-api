@@ -1,6 +1,6 @@
 package com.devlink.backend.dto
 
-import com.devlink.backend.enums.Role
+import com.devlink.backend.enums.*
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
@@ -20,7 +20,59 @@ data class CreateUserRequest(
     @field:Size(min = 8, message = "Password must be at least 8 characters")
     val password: String,
 
-    val role: Role
+    val role: Role,
+
+    // Student profile fields
+    val name: String? = null,
+    val course: Course? = null,
+    val branch: Branch? = null,
+    val admissionYear: Int? = null,
+    val semester: Int? = null,
+    val bio: String? = null,
+    val contact: String? = null,
+
+    // Teacher profile fields
+    val employeeId: Long? = null,
+    val department: String? = null,
+    val designation: String? = null,
+
+    // Recruiter profile fields
+    val companyName: String? = null,
+    val companyLogo: String? = null
+)
+
+data class UpdateProfileRequest(
+    @field:Size(min = 3, max = 50)
+    val username: String? = null,
+
+    val password: String? = null,
+
+    // Student profile fields
+    val name: String? = null,
+    val course: Course? = null,
+    val branch: Branch? = null,
+    val admissionYear: Int? = null,
+    val semester: Int? = null,
+    val bio: String? = null,
+    val contact: String? = null,
+    val photoUrl: String? = null,
+
+    // Teacher profile fields
+    val employeeId: Long? = null,
+    val department: String? = null,
+    val designation: String? = null,
+
+    // Recruiter profile fields
+    val companyName: String? = null,
+    val companyLogo: String? = null,
+
+    // Social Links
+    val socialLinks: List<SocialLinkRequest>? = null
+)
+
+data class SocialLinkRequest(
+    val platform: SocialPlatform,
+    val url: String
 )
 
 /** POST /api/user/login — step 1: email + password check, triggers OTP email. */

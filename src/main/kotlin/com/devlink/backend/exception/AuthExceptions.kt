@@ -9,3 +9,5 @@ class OtpExpiredException : RuntimeException("OTP has expired. Please login agai
 class OtpInvalidException(attemptsLeft: Int) : RuntimeException("Incorrect OTP. $attemptsLeft attempt(s) left.")
 class OtpMaxAttemptsExceededException : RuntimeException("Too many incorrect attempts. Please login again to request a new OTP.")
 class RefreshTokenInvalidException : RuntimeException("Refresh token is invalid, expired, or revoked")
+class ProfileNotFoundException(userId: Long) : RuntimeException("Profile not found for user ID: $userId")
+class ProfileNotFoundByUsernameException(username: String) : RuntimeException("Profile not found for username: $username")

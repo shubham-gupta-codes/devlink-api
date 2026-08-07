@@ -42,6 +42,17 @@ class GlobalExceptionHandler {
     fun handleBadRequest(ex: RuntimeException, req: HttpServletRequest): ResponseEntity<ApiError> =
         build(HttpStatus.BAD_REQUEST, ex.message, req)
 
+    @ExceptionHandler(
+        ProfileNotFoundException::class,
+        ProfileNotFoundByUsernameException::class
+    )
+    fun handleNotFound(ex: RuntimeException, req: HttpServletRequest): ResponseEntity<ApiError> =
+        build(HttpStatus.NOT_FOUND, ex.message, req)
+
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun handleIllegalArgument(ex: IllegalArgumentException, req: HttpServletRequest): ResponseEntity<ApiError> =
+        build(HttpStatus.BAD_REQUEST, ex.message, req)
+
     @ExceptionHandler(MethodArgumentNotValidException::class)
     fun handleValidation(ex: MethodArgumentNotValidException, req: HttpServletRequest): ResponseEntity<ApiError> {
         val message = ex.bindingResult.fieldErrors

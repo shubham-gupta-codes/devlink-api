@@ -1,6 +1,6 @@
 package com.devlink.backend.dto
 
-import com.devlink.backend.enums.Role
+import com.devlink.backend.enums.*
 import java.time.Instant
 
 data class UserResponse(
@@ -9,7 +9,42 @@ data class UserResponse(
     val email: String,
     val role: Role,
     val enabled: Boolean,
-    val createdAt: Instant
+    val createdAt: Instant,
+    val profile: ProfileResponse? = null
+)
+
+data class ProfileResponse(
+    val userId: Long,
+    val role: Role,
+    val username: String,
+    val email: String,
+
+    // Student fields
+    val name: String? = null,
+    val photoUrl: String? = null,
+    val course: Course? = null,
+    val branch: Branch? = null,
+    val admissionYear: Int? = null,
+    val semester: Int? = null,
+    val status: AcademicStatus? = null,
+    val bio: String? = null,
+    val totalPoints: Int? = null,
+    val contact: String? = null,
+    val socialLinks: List<SocialLinkResponse>? = null,
+
+    // Teacher fields
+    val employeeId: Long? = null,
+    val department: String? = null,
+    val designation: String? = null,
+
+    // Recruiter fields
+    val companyName: String? = null,
+    val companyLogo: String? = null
+)
+
+data class SocialLinkResponse(
+    val platform: SocialPlatform,
+    val url: String
 )
 
 /** Returned right after /login — no tokens yet, just confirmation the OTP was sent. */
