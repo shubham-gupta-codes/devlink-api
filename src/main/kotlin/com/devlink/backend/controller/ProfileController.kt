@@ -4,6 +4,8 @@ import com.devlink.backend.dto.ProfileResponse
 import com.devlink.backend.dto.UpdateProfileRequest
 import com.devlink.backend.security.UserPrincipal
 import com.devlink.backend.service.ProfileService
+import com.devlink.backend.enums.Course
+import com.devlink.backend.enums.Branch
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -48,7 +50,11 @@ class ProfileController(
 
     /** GET /api/user/profile/rankings - Get student leaderboard rankings. */
     @GetMapping("/rankings")
-    fun getStudentRankings(): ResponseEntity<List<ProfileResponse>> {
-        return ResponseEntity.ok(profileService.getStudentRankings())
+    fun getStudentRankings(
+        @RequestParam(required = false) course: Course?,
+        @RequestParam(required = false) branch: Branch?,
+        @RequestParam(required = false) admissionYear: Int?
+    ): ResponseEntity<List<ProfileResponse>> {
+        return ResponseEntity.ok(profileService.getStudentRankings(course, branch, admissionYear))
     }
 }

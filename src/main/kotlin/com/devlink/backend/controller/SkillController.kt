@@ -50,7 +50,7 @@ class SkillController(
         @PathVariable requestId: Long,
         @RequestBody request: ApproveSkillRequest
     ): ResponseEntity<SkillRequestResponse> =
-        ResponseEntity.ok(skillService.approveRequest(principal.id, requestId, request.level, request.points))
+        ResponseEntity.ok(skillService.approveRequest(principal.id, requestId, request.level, request.points, request.remarks))
 
     @PostMapping("/request/{requestId}/reject")
     fun rejectRequest(

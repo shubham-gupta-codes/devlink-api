@@ -3,6 +3,8 @@ package com.devlink.backend.service.impl
 import com.devlink.backend.dto.*
 import com.devlink.backend.entity.*
 import com.devlink.backend.enums.Role
+import com.devlink.backend.enums.Course
+import com.devlink.backend.enums.Branch
 import com.devlink.backend.exception.*
 import com.devlink.backend.repository.*
 import com.devlink.backend.service.ProfileService
@@ -18,6 +20,8 @@ class ProfileServiceImpl(
     private val teacherProfileRepository: TeacherProfileRepository,
     private val recruiterProfileRepository: RecruiterProfileRepository,
     private val socialLinkRepository: SocialLinkRepository,
+    private val studentBadgeRepository: StudentBadgeRepository,
+    private val teacherFeedbackRepository: TeacherFeedbackRepository,
     private val passwordEncoder: PasswordEncoder
 ) : ProfileService {
 
@@ -116,6 +120,24 @@ class ProfileServiceImpl(
 
     // Helper functions for mapping
     private fun StudentProfile.toResponse(username: String, email: String, socialLinks: List<SocialLink>): ProfileResponse {
+        val allStudents = studentProfileRepository.findAll()
+            .sortedByDescending { it.totalPoints ?: 0 }
+        val rankPosition = allStudents.indexOfFirst { it.id == this.id } + 1
+        
+        val badgesList = studentBadgeRepository.findByStudent(this).map { it.badgeName }
+        
+        val feedbacks = teacherFeedbackRepository.findByStudentOrderByCreatedAtDesc(this)
+        val latestFb = feedbacks.firstOrNull()?.let { fb ->
+            TeacherFeedbackResponse(
+                id = fb.id!!,
+                teacherUsername = fb.teacher.user.username,
+                teacherName = fb.teacher.user.username,
+                department = fb.teacher.department,
+                content = fb.content,
+                createdAt = fb.createdAt
+            )
+        }
+
         return ProfileResponse(
             userId = this.id!!,
             role = Role.STUDENT,
@@ -131,7 +153,10 @@ class ProfileServiceImpl(
             bio = this.bio,
             totalPoints = this.totalPoints,
             contact = this.contact,
-            socialLinks = socialLinks.map { SocialLinkResponse(it.platform, it.url) }
+            socialLinks = socialLinks.map { SocialLinkResponse(it.platform, it.url) },
+            rank = rankPosition,
+            badges = badgesList,
+            latestFeedback = latestFb
         )
     }
 
@@ -160,10 +185,23 @@ class ProfileServiceImpl(
         )
     }
 
-    override fun getStudentRankings(): List<ProfileResponse> {
-        val studentProfiles = studentProfileRepository.findAll()
-            .sortedByDescending { it.totalPoints ?: 0 }
-        return studentProfiles.map { student ->
+    override fun getStudentRankings(
+        course: Course?,
+        branch: Branch?,
+        admissionYear: Int?
+    ): List<ProfileResponse> {
+        var studentProfiles = studentProfileRepository.findAll()
+        if (course != null) {
+            studentProfiles = studentProfiles.filter { it.course == course }
+        }
+        if (branch != null) {
+            studentProfiles = studentProfiles.filter { it.branch == branch }
+        }
+        if (admissionYear != null) {
+            studentProfiles = studentProfiles.filter { it.admissionYear == admissionYear }
+        }
+        val sorted = studentProfiles.sortedByDescending { it.totalPoints ?: 0 }
+        return sorted.map { student ->
             val user = student.user
             val socialLinks = socialLinkRepository.findByUser(user)
             student.toResponse(user.username, user.email, socialLinks)

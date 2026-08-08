@@ -18,7 +18,10 @@ class VerificationServiceImpl(
     private val pointsLedgerRepository: PointsLedgerRepository,
     private val notificationRepository: NotificationRepository,
     private val userRepository: UserRepository,
-    private val projectImageRepository: ProjectImageRepository
+    private val projectImageRepository: ProjectImageRepository,
+    private val teacherProfileRepository: TeacherProfileRepository,
+    private val teacherFeedbackRepository: TeacherFeedbackRepository,
+    private val badgeEvaluator: com.devlink.backend.service.BadgeEvaluator
 ) : VerificationService {
 
     override fun getTeacherQueue(teacherId: Long, entityType: EntityType?): List<VerificationRequestResponse> {
@@ -61,13 +64,30 @@ class VerificationServiceImpl(
                         student = student,
                         pointSource = PointSource.VERIFIED_PROJECT,
                         points = pts,
-                        referenceId = project.id!!
+                        referenceId = project.id!!,
+                        teacher = verificationRequest.reviewedBy
                     )
                     pointsLedgerRepository.save(ledger)
 
                     // Update student points
-                    student.totalPoints = student.totalPoints + pts
+                    student.totalPoints = (student.totalPoints ?: 0) + pts
                     studentProfileRepository.save(student)
+
+                    // Save teacher feedback
+                    if (!request.remarks.isNullOrBlank()) {
+                        val teacherProfile = teacherProfileRepository.findById(teacherId)
+                            .orElseThrow { IllegalArgumentException("Teacher profile not found") }
+                        teacherFeedbackRepository.save(
+                            TeacherFeedback(
+                                student = student,
+                                teacher = teacherProfile,
+                                content = request.remarks
+                            )
+                        )
+                    }
+
+                    // Evaluate badges
+                    badgeEvaluator.evaluateBadges(student)
 
                     // Notify student
                     val notification = Notification(
@@ -105,13 +125,30 @@ class VerificationServiceImpl(
                         student = student,
                         pointSource = PointSource.VERIFIED_CERTIFICATE,
                         points = pts,
-                        referenceId = certificate.id!!
+                        referenceId = certificate.id!!,
+                        teacher = verificationRequest.reviewedBy
                     )
                     pointsLedgerRepository.save(ledger)
 
                     // Update student points
-                    student.totalPoints = student.totalPoints + pts
+                    student.totalPoints = (student.totalPoints ?: 0) + pts
                     studentProfileRepository.save(student)
+
+                    // Save teacher feedback
+                    if (!request.remarks.isNullOrBlank()) {
+                        val teacherProfile = teacherProfileRepository.findById(teacherId)
+                            .orElseThrow { IllegalArgumentException("Teacher profile not found") }
+                        teacherFeedbackRepository.save(
+                            TeacherFeedback(
+                                student = student,
+                                teacher = teacherProfile,
+                                content = request.remarks
+                            )
+                        )
+                    }
+
+                    // Evaluate badges
+                    badgeEvaluator.evaluateBadges(student)
 
                     // Notify student
                     val notification = Notification(

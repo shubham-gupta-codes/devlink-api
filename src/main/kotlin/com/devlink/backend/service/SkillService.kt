@@ -11,6 +11,6 @@ interface SkillService {
     fun getStudentApprovedSkills(studentId: Long): List<StudentSkillResponse>
     fun getTeacherPendingRequests(teacherId: Long): List<SkillRequestResponse>
     fun scheduleMeeting(teacherId: Long, requestId: Long, meetingDate: Instant, notes: String): SkillRequestResponse
-    fun approveRequest(teacherId: Long, requestId: Long, level: SkillLevel, points: Int): SkillRequestResponse
+    fun approveRequest(teacherId: Long, requestId: Long, level: SkillLevel, points: Int, remarks: String? = null): SkillRequestResponse
     fun rejectRequest(teacherId: Long, requestId: Long, reason: String): SkillRequestResponse
 }

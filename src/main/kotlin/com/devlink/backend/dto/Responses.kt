@@ -31,6 +31,9 @@ data class ProfileResponse(
     val totalPoints: Int? = null,
     val contact: String? = null,
     val socialLinks: List<SocialLinkResponse>? = null,
+    val rank: Int? = null,
+    val badges: List<String> = emptyList(),
+    val latestFeedback: TeacherFeedbackResponse? = null,
 
     // Teacher fields
     val employeeId: Long? = null,
@@ -40,6 +43,15 @@ data class ProfileResponse(
     // Recruiter fields
     val companyName: String? = null,
     val companyLogo: String? = null
+)
+
+data class TeacherFeedbackResponse(
+    val id: Long,
+    val teacherUsername: String,
+    val teacherName: String,
+    val department: String,
+    val content: String,
+    val createdAt: Instant
 )
 
 data class SocialLinkResponse(

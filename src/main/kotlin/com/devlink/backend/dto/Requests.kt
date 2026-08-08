@@ -109,7 +109,8 @@ data class SkillRequestDto(
 
 data class ApproveSkillRequest(
     val level: com.devlink.backend.enums.SkillLevel,
-    val points: Int
+    val points: Int,
+    val remarks: String? = null
 )
 
 data class ScheduleMeetingRequest(

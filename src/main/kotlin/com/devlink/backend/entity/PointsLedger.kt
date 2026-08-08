@@ -25,6 +25,10 @@ class PointsLedger(
     @Column(name = "reference_id", nullable = false)
     val referenceId: Long,
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "teacher_id", nullable = true)
+    val teacher: User? = null,
+
     @Column(name = "created_at", nullable = false)
     val createdAt: Instant = Instant.now()
 )

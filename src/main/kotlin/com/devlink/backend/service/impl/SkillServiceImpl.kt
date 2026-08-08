@@ -4,9 +4,11 @@ import com.devlink.backend.dto.*
 import com.devlink.backend.entity.*
 import com.devlink.backend.enums.SkillLevel
 import com.devlink.backend.enums.SkillStatus
+import com.devlink.backend.enums.PointSource
 import com.devlink.backend.exception.ProfileNotFoundException
 import com.devlink.backend.repository.*
 import com.devlink.backend.service.SkillService
+import com.devlink.backend.service.BadgeEvaluator
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -18,7 +20,10 @@ class SkillServiceImpl(
     private val teacherProfileRepository: TeacherProfileRepository,
     private val skillRequestRepository: SkillRequestRepository,
     private val studentSkillRepository: StudentSkillRepository,
-    private val notificationRepository: NotificationRepository
+    private val notificationRepository: NotificationRepository,
+    private val pointsLedgerRepository: PointsLedgerRepository,
+    private val teacherFeedbackRepository: TeacherFeedbackRepository,
+    private val badgeEvaluator: BadgeEvaluator
 ) : SkillService {
 
     override fun getAllSkills(): List<SkillResponse> {
@@ -132,7 +137,8 @@ class SkillServiceImpl(
         teacherId: Long,
         requestId: Long,
         level: SkillLevel,
-        points: Int
+        points: Int,
+        remarks: String?
     ): SkillRequestResponse {
         val request = skillRequestRepository.findById(requestId)
             .orElseThrow { IllegalArgumentException("Request not found") }
@@ -152,11 +158,35 @@ class SkillServiceImpl(
             pointsAwarded = points,
             approvedBy = request.teacher
         )
-        studentSkillRepository.save(studentSkill)
+        val savedSkill = studentSkillRepository.save(studentSkill)
 
         // Add points to student profile
         request.student.totalPoints = (request.student.totalPoints ?: 0) + points
         studentProfileRepository.save(request.student)
+
+        // Add to points ledger
+        val ledger = PointsLedger(
+            student = request.student,
+            pointSource = PointSource.VERIFIED_SKILL,
+            points = points,
+            referenceId = savedSkill.id!!,
+            teacher = request.teacher.user
+        )
+        pointsLedgerRepository.save(ledger)
+
+        // Save teacher feedback
+        if (!remarks.isNullOrBlank()) {
+            teacherFeedbackRepository.save(
+                TeacherFeedback(
+                    student = request.student,
+                    teacher = request.teacher,
+                    content = remarks
+                )
+            )
+        }
+
+        // Evaluate badges
+        badgeEvaluator.evaluateBadges(request.student)
 
         // Notify student
         val studentNotification = Notification(
