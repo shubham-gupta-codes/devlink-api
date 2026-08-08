@@ -38,3 +38,16 @@ enum class SocialPlatform {
     BEHANCE,
     DRIBBBLE
 }
+
+enum class SkillStatus {
+    PENDING,
+    MEET,
+    ACCEPTED,
+    REJECTED
+}
+
+enum class SkillLevel {
+    LOW,
+    MID,
+    HIGH
+}

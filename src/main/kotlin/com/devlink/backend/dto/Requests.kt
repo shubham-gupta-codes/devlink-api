@@ -101,3 +101,22 @@ data class RefreshTokenRequest(
     @field:NotBlank
     val refreshToken: String
 )
+
+data class SkillRequestDto(
+    val skillId: Long
+)
+
+data class ApproveSkillRequest(
+    val level: com.devlink.backend.enums.SkillLevel,
+    val points: Int
+)
+
+data class ScheduleMeetingRequest(
+    val meetingDate: java.time.Instant,
+    val notes: String
+)
+
+data class RejectSkillRequest(
+    val reason: String
+)
+

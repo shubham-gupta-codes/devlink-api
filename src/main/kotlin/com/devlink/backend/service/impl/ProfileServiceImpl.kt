@@ -159,4 +159,14 @@ class ProfileServiceImpl(
             contact = this.contact
         )
     }
+
+    override fun getStudentRankings(): List<ProfileResponse> {
+        val studentProfiles = studentProfileRepository.findAll()
+            .sortedByDescending { it.totalPoints ?: 0 }
+        return studentProfiles.map { student ->
+            val user = student.user
+            val socialLinks = socialLinkRepository.findByUser(user)
+            student.toResponse(user.username, user.email, socialLinks)
+        }
+    }
 }

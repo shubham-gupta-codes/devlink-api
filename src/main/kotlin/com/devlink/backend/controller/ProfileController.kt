@@ -45,4 +45,10 @@ class ProfileController(
         val updated = profileService.updateProfile(principal.id, request)
         return ResponseEntity.ok(updated)
     }
+
+    /** GET /api/user/profile/rankings - Get student leaderboard rankings. */
+    @GetMapping("/rankings")
+    fun getStudentRankings(): ResponseEntity<List<ProfileResponse>> {
+        return ResponseEntity.ok(profileService.getStudentRankings())
+    }
 }

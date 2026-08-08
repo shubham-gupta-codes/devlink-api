@@ -7,4 +7,5 @@ interface ProfileService {
     fun getProfile(userId: Long): ProfileResponse
     fun getProfileByUsername(username: String): ProfileResponse
     fun updateProfile(userId: Long, request: UpdateProfileRequest): ProfileResponse
+    fun getStudentRankings(): List<ProfileResponse>
 }

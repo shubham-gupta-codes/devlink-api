@@ -77,3 +77,39 @@ data class ApiError(
     val message: String?,
     val path: String
 )
+
+data class SkillResponse(
+    val id: Long,
+    val name: String
+)
+
+data class StudentSkillResponse(
+    val id: Long,
+    val skillName: String,
+    val level: com.devlink.backend.enums.SkillLevel,
+    val pointsAwarded: Int,
+    val approvedByTeacherName: String?,
+    val approvedAt: Instant
+)
+
+data class SkillRequestResponse(
+    val id: Long,
+    val studentName: String,
+    val studentUsername: String,
+    val skillName: String,
+    val teacherName: String,
+    val status: com.devlink.backend.enums.SkillStatus,
+    val meetingDate: Instant?,
+    val meetingNotes: String?,
+    val rejectionReason: String?,
+    val createdAt: Instant
+)
+
+data class NotificationResponse(
+    val id: Long,
+    val title: String,
+    val message: String,
+    val read: Boolean,
+    val createdAt: Instant
+)
+
