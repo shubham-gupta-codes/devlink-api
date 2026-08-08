@@ -51,3 +51,27 @@ enum class SkillLevel {
     MID,
     HIGH
 }
+
+enum class VerificationStatus {
+    PENDING,
+    APPROVED,
+    REJECTED,
+    NEED_TO_TALK
+}
+
+enum class EntityType {
+    SKILL,
+    PROJECT,
+    CERTIFICATE
+}
+
+enum class FileType {
+    PDF,
+    IMAGE
+}
+
+enum class PointSource {
+    VERIFIED_SKILL,
+    VERIFIED_PROJECT,
+    VERIFIED_CERTIFICATE
+}

@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
+import java.time.Instant
 
 /** POST /api/admin/user — only an ADMIN can hit this. */
 data class CreateUserRequest(
@@ -119,4 +120,34 @@ data class ScheduleMeetingRequest(
 data class RejectSkillRequest(
     val reason: String
 )
+
+data class UploadProjectRequest(
+    val name: String,
+    val description: String,
+    val techStack: String,
+    val githubUrl: String?,
+    val demoUrl: String?,
+    val imageUrls: List<String>? = null
+)
+
+data class ProjectCommentRequest(
+    val content: String,
+    val parentCommentId: Long? = null
+)
+
+data class UploadCertificateRequest(
+    val title: String,
+    val issuingOrg: String,
+    val purpose: String,
+    val fileUrl: String,
+    val fileType: FileType
+)
+
+data class EvaluateVerificationRequest(
+    val status: VerificationStatus,
+    val remarks: String? = null,
+    val points: Int? = null,
+    val scheduleAt: Instant? = null
+)
+
 

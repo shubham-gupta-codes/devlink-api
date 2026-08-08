@@ -113,3 +113,76 @@ data class NotificationResponse(
     val createdAt: Instant
 )
 
+data class ProjectResponse(
+    val id: Long,
+    val studentUserId: Long,
+    val studentUsername: String,
+    val studentName: String,
+    val name: String,
+    val description: String,
+    val techStack: String,
+    val githubUrl: String?,
+    val demoUrl: String?,
+    val verificationStatus: VerificationStatus,
+    val likeCount: Long,
+    val commentCount: Long,
+    val createdAt: Instant,
+    val imageUrls: List<String>,
+    val likedByCurrentUser: Boolean = false
+)
+
+data class ProjectCommentResponse(
+    val id: Long,
+    val projectId: Long,
+    val userId: Long,
+    val username: String,
+    val name: String,
+    val content: String,
+    val createdAt: Instant,
+    val replies: List<ProjectCommentResponse> = emptyList()
+)
+
+data class CertificateResponse(
+    val id: Long,
+    val studentUserId: Long,
+    val studentUsername: String,
+    val studentName: String,
+    val title: String,
+    val issuingOrg: String,
+    val purpose: String,
+    val fileUrl: String,
+    val fileType: FileType,
+    val verificationStatus: VerificationStatus,
+    val teacherRemarks: String? = null
+)
+
+data class VerificationRequestResponse(
+    val id: Long,
+    val entityType: EntityType,
+    val entityId: Long,
+    val entityName: String,
+    val requestedByUserId: Long,
+    val requestedByUsername: String,
+    val requestedByName: String,
+    val status: VerificationStatus,
+    val reviewedByUserId: Long,
+    val reviewedByUsername: String,
+    val reviewedByName: String,
+    val reviewedAt: Instant?,
+    val remarks: String?,
+    val scheduleAt: Instant?,
+    val projectDetails: ProjectResponse? = null,
+    val certificateDetails: CertificateResponse? = null
+)
+
+data class TeacherAnalyticsResponse(
+    val languageCounts: Map<String, Long>,
+    val studentCountsByLanguage: List<StudentCountByLanguage>
+)
+
+data class StudentCountByLanguage(
+    val language: String,
+    val count: Long
+)
+
+
