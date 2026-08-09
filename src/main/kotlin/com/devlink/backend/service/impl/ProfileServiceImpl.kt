@@ -207,4 +207,29 @@ class ProfileServiceImpl(
             student.toResponse(user.username, user.email, socialLinks)
         }
     }
+
+    override fun searchStudents(
+        query: String?,
+        course: Course?,
+        branch: Branch?,
+        admissionYear: Int?,
+        semester: Int?,
+        skill: String?,
+        badge: String?
+    ): List<ProfileResponse> {
+        val studentProfiles = studentProfileRepository.searchStudents(
+            query = query?.trim()?.takeIf { it.isNotBlank() },
+            course = course,
+            branch = branch,
+            admissionYear = admissionYear,
+            semester = semester,
+            skill = skill?.trim()?.takeIf { it.isNotBlank() },
+            badge = badge?.trim()?.takeIf { it.isNotBlank() }
+        )
+        return studentProfiles.map { student ->
+            val user = student.user
+            val socialLinks = socialLinkRepository.findByUser(user)
+            student.toResponse(user.username, user.email, socialLinks)
+        }
+    }
 }

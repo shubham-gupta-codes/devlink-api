@@ -57,4 +57,20 @@ class ProfileController(
     ): ResponseEntity<List<ProfileResponse>> {
         return ResponseEntity.ok(profileService.getStudentRankings(course, branch, admissionYear))
     }
+
+    /** GET /api/user/profile/search - Search student profiles with filters. */
+    @GetMapping("/search")
+    fun searchStudents(
+        @RequestParam(required = false) query: String?,
+        @RequestParam(required = false) course: Course?,
+        @RequestParam(required = false) branch: Branch?,
+        @RequestParam(required = false) admissionYear: Int?,
+        @RequestParam(required = false) semester: Int?,
+        @RequestParam(required = false) skill: String?,
+        @RequestParam(required = false) badge: String?
+    ): ResponseEntity<List<ProfileResponse>> {
+        return ResponseEntity.ok(
+            profileService.searchStudents(query, course, branch, admissionYear, semester, skill, badge)
+        )
+    }
 }

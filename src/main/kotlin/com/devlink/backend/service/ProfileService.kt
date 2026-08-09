@@ -10,4 +10,13 @@ interface ProfileService {
     fun getProfileByUsername(username: String): ProfileResponse
     fun updateProfile(userId: Long, request: UpdateProfileRequest): ProfileResponse
     fun getStudentRankings(course: Course?, branch: Branch?, admissionYear: Int?): List<ProfileResponse>
+    fun searchStudents(
+        query: String?,
+        course: Course?,
+        branch: Branch?,
+        admissionYear: Int?,
+        semester: Int?,
+        skill: String?,
+        badge: String?
+    ): List<ProfileResponse>
 }
