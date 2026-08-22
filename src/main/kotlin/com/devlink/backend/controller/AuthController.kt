@@ -5,6 +5,8 @@ import com.devlink.backend.dto.LoginRequest
 import com.devlink.backend.dto.LoginResponse
 import com.devlink.backend.dto.RefreshTokenRequest
 import com.devlink.backend.dto.VerifyOtpRequest
+import com.devlink.backend.dto.ForgotPasswordRequest
+import com.devlink.backend.dto.ResetPasswordRequest
 import com.devlink.backend.service.AuthService
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -33,4 +35,16 @@ class AuthController(
     @PostMapping("/refresh-token")
     fun refresh(@Valid @RequestBody request: RefreshTokenRequest): ResponseEntity<AuthResponse> =
         ResponseEntity.ok(authService.refresh(request.refreshToken))
+
+    @PostMapping("/forgot-password/request")
+    fun requestForgotPassword(@Valid @RequestBody request: ForgotPasswordRequest): ResponseEntity<Map<String, String>> {
+        authService.forgotPasswordRequest(request)
+        return ResponseEntity.ok(mapOf("message" to "OTP sent to ${request.email}"))
+    }
+
+    @PostMapping("/forgot-password/reset")
+    fun resetPassword(@Valid @RequestBody request: ResetPasswordRequest): ResponseEntity<Map<String, String>> {
+        authService.resetPassword(request)
+        return ResponseEntity.ok(mapOf("message" to "Password reset successful"))
+    }
 }

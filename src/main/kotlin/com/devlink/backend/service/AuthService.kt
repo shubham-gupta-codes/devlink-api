@@ -32,6 +32,7 @@ class AuthService(
     private val authenticationManager: AuthenticationManager,
     private val otpService: OtpService,
     private val jwtService: JwtService,
+    private val passwordEncoder: PasswordEncoder,
     @Value("\${app.otp.expiry-minutes}") private val otpExpiryMinutes: Int,
     @Value("\${app.jwt.refresh-token-expiry-ms}") private val refreshTokenExpiryMs: Long
 ) {
@@ -84,6 +85,22 @@ class AuthService(
         refreshTokenRepository.save(stored)
 
         return issueTokensFor(stored.user)
+    }
+
+    @Transactional
+    fun forgotPasswordRequest(request: com.devlink.backend.dto.ForgotPasswordRequest) {
+        val user = userRepository.findByEmail(request.email)
+            .orElseThrow { IllegalArgumentException("No user found with email ${request.email}") }
+        otpService.generateAndSendOtp(user.email)
+    }
+
+    @Transactional
+    fun resetPassword(request: com.devlink.backend.dto.ResetPasswordRequest) {
+        val user = userRepository.findByEmail(request.email)
+            .orElseThrow { IllegalArgumentException("No user found with email ${request.email}") }
+        otpService.verifyOtp(request.email, request.otp)
+        user.password = passwordEncoder.encode(request.newPassword)!!
+        userRepository.save(user)
     }
 
     private fun issueTokensFor(user: User): AuthResponse {

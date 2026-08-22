@@ -23,7 +23,10 @@ class SkillServiceImpl(
     private val notificationRepository: NotificationRepository,
     private val pointsLedgerRepository: PointsLedgerRepository,
     private val teacherFeedbackRepository: TeacherFeedbackRepository,
-    private val badgeEvaluator: BadgeEvaluator
+    private val badgeEvaluator: BadgeEvaluator,
+    private val conversationRepository: ConversationRepository,
+    private val conversationParticipantRepository: ConversationParticipantRepository,
+    private val messageRepository: MessageRepository
 ) : SkillService {
 
     override fun getAllSkills(): List<SkillResponse> {
@@ -121,7 +124,6 @@ class SkillServiceImpl(
         request.updatedAt = Instant.now()
         val saved = skillRequestRepository.save(request)
 
-        // Notify student
         val studentNotification = Notification(
             user = request.student.user,
             title = "Evaluation Scheduled",
@@ -129,7 +131,33 @@ class SkillServiceImpl(
         )
         notificationRepository.save(studentNotification)
 
+        sendEvaluationChatRemark(
+            request.teacher.user,
+            request.student.user,
+            "Scheduled skill evaluation for ${request.skill.name} on $meetingDate. Notes: $notes"
+        )
+
         return saved.toResponse()
+    }
+
+    private fun sendEvaluationChatRemark(teacherUser: User, studentUser: User, remark: String) {
+        val existing = conversationRepository.findDirectConversationBetween(teacherUser.id!!, studentUser.id!!)
+        val conversation = if (existing.isNotEmpty()) {
+            existing.first()
+        } else {
+            val newConv = Conversation(type = "DIRECT")
+            val saved = conversationRepository.save(newConv)
+            val p1 = ConversationParticipant(conversationId = saved.id!!, userId = teacherUser.id!!)
+            val p2 = ConversationParticipant(conversationId = saved.id!!, userId = studentUser.id!!)
+            conversationParticipantRepository.saveAll(listOf(p1, p2))
+            saved
+        }
+        val message = Message(
+            conversation = conversation,
+            sender = teacherUser,
+            content = remark
+        )
+        messageRepository.save(message)
     }
 
     @Transactional
@@ -183,6 +211,17 @@ class SkillServiceImpl(
                     content = remarks
                 )
             )
+            sendEvaluationChatRemark(
+                request.teacher.user,
+                request.student.user,
+                "Approved skill request for ${request.skill.name}: $remarks"
+            )
+        } else {
+            sendEvaluationChatRemark(
+                request.teacher.user,
+                request.student.user,
+                "Approved skill request for ${request.skill.name} with +$points points."
+            )
         }
 
         // Evaluate badges
@@ -223,6 +262,12 @@ class SkillServiceImpl(
             message = "Your skill request for \"${request.skill.name}\" was rejected. Reason: $reason"
         )
         notificationRepository.save(studentNotification)
+
+        sendEvaluationChatRemark(
+            request.teacher.user,
+            request.student.user,
+            "Rejected skill request for ${request.skill.name}. Reason: $reason"
+        )
 
         return saved.toResponse()
     }

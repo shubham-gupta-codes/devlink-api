@@ -41,22 +41,53 @@ class ProfileServiceImpl(
         return when (user.role) {
             Role.STUDENT -> {
                 val profile = studentProfileRepository.findByUser(user)
-                    .orElseThrow { ProfileNotFoundException(user.id!!) }
+                    .orElseGet {
+                        studentProfileRepository.save(
+                            StudentProfile(
+                                user = user,
+                                name = user.username,
+                                course = Course.BTECH,
+                                branch = Branch.CS,
+                                admissionYear = 2024,
+                                semester = 1
+                            )
+                        )
+                    }
                 val socialLinks = socialLinkRepository.findByUser(user)
                 profile.toResponse(user.username, user.email, socialLinks)
             }
             Role.TEACHER -> {
                 val profile = teacherProfileRepository.findByUser(user)
-                    .orElseThrow { ProfileNotFoundException(user.id!!) }
+                    .orElseGet {
+                        teacherProfileRepository.save(
+                            TeacherProfile(
+                                user = user,
+                                employeeId = user.id!!,
+                                department = "General"
+                            )
+                        )
+                    }
                 profile.toResponse(user.username, user.email)
             }
             Role.RECRUITER -> {
                 val profile = recruiterProfileRepository.findByUser(user)
-                    .orElseThrow { ProfileNotFoundException(user.id!!) }
+                    .orElseGet {
+                        recruiterProfileRepository.save(
+                            RecruiterProfile(
+                                user = user,
+                                companyName = "DevLink"
+                            )
+                        )
+                    }
                 profile.toResponse(user.username, user.email)
             }
             Role.ADMIN -> {
-                throw ProfileNotFoundException(user.id!!)
+                ProfileResponse(
+                    userId = user.id!!,
+                    role = Role.ADMIN,
+                    username = user.username,
+                    email = user.email
+                )
             }
         }
     }

@@ -64,7 +64,11 @@ class SecurityConfig(
                         "/api/user/login",
                         "/api/user/verify",
                         "/api/user/refresh-token",
-                        "/actuator/health"
+                        "/api/user/forgot-password/**",
+                        "/api/files/**",
+                        "/actuator/health",
+                        "/ws/chat/**",
+                        "/ws/chat"
                     ).permitAll()
                     .requestMatchers("/api/admin/**").hasRole("ADMIN")
                     .anyRequest().authenticated()

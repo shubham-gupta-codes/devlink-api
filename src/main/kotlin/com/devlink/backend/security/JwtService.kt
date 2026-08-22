@@ -36,6 +36,8 @@ class JwtService(
 
     fun extractRole(token: String): String = extractAllClaims(token)["role"] as String
 
+    fun extractUserId(token: String): Long = (extractAllClaims(token)["userId"] as Number).toLong()
+
     fun isTokenValid(token: String): Boolean =
         try {
             extractAllClaims(token)

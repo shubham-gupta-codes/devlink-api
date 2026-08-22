@@ -150,5 +150,19 @@ data class EvaluateVerificationRequest(
     val points: Int? = null,
     val scheduleAt: Instant? = null
 )
+data class ForgotPasswordRequest(
+    @field:NotBlank
+    @field:Email
+    val email: String
+)
 
-
+data class ResetPasswordRequest(
+    @field:NotBlank
+    @field:Email
+    val email: String,
+    @field:NotBlank
+    val otp: String,
+    @field:NotBlank
+    @field:Size(min = 8, message = "Password must be at least 8 characters")
+    val newPassword: String
+)

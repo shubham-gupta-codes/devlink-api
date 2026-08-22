@@ -21,7 +21,10 @@ class VerificationServiceImpl(
     private val projectImageRepository: ProjectImageRepository,
     private val teacherProfileRepository: TeacherProfileRepository,
     private val teacherFeedbackRepository: TeacherFeedbackRepository,
-    private val badgeEvaluator: com.devlink.backend.service.BadgeEvaluator
+    private val badgeEvaluator: com.devlink.backend.service.BadgeEvaluator,
+    private val conversationRepository: ConversationRepository,
+    private val conversationParticipantRepository: ConversationParticipantRepository,
+    private val messageRepository: MessageRepository
 ) : VerificationService {
 
     override fun getTeacherQueue(teacherId: Long, entityType: EntityType?): List<VerificationRequestResponse> {
@@ -96,6 +99,12 @@ class VerificationServiceImpl(
                         message = "Your project '${project.name}' has been verified. Points earned: $pts."
                     )
                     notificationRepository.save(notification)
+
+                    sendEvaluationChatRemark(
+                        verificationRequest.reviewedBy,
+                        student.user,
+                        "Approved project '${project.name}' with +$pts points. Remarks: ${request.remarks ?: ""}"
+                    )
                 } else if (request.status == VerificationStatus.REJECTED) {
                     val notification = Notification(
                         user = student.user,
@@ -103,6 +112,12 @@ class VerificationServiceImpl(
                         message = "Your project '${project.name}' is rejected. Reason: ${request.remarks ?: "Does not meet requirements."}"
                     )
                     notificationRepository.save(notification)
+
+                    sendEvaluationChatRemark(
+                        verificationRequest.reviewedBy,
+                        student.user,
+                        "Rejected project '${project.name}'. Reason: ${request.remarks ?: "Does not meet requirements."}"
+                    )
                 } else if (request.status == VerificationStatus.NEED_TO_TALK) {
                     val notification = Notification(
                         user = student.user,
@@ -110,6 +125,12 @@ class VerificationServiceImpl(
                         message = "Teacher wants to talk regarding project '${project.name}'. Remarks: ${request.remarks ?: ""}"
                     )
                     notificationRepository.save(notification)
+
+                    sendEvaluationChatRemark(
+                        verificationRequest.reviewedBy,
+                        student.user,
+                        "Scheduled discussion for project '${project.name}'. Remarks: ${request.remarks ?: ""}"
+                    )
                 }
             }
             EntityType.CERTIFICATE -> {
@@ -157,6 +178,12 @@ class VerificationServiceImpl(
                         message = "Your certificate '${certificate.title}' has been verified. Points earned: $pts."
                     )
                     notificationRepository.save(notification)
+
+                    sendEvaluationChatRemark(
+                        verificationRequest.reviewedBy,
+                        student.user,
+                        "Approved certificate '${certificate.title}' with +$pts points. Remarks: ${request.remarks ?: ""}"
+                    )
                 } else if (request.status == VerificationStatus.REJECTED) {
                     val notification = Notification(
                         user = student.user,
@@ -164,6 +191,12 @@ class VerificationServiceImpl(
                         message = "Your certificate '${certificate.title}' is rejected. Reason: ${request.remarks ?: "Does not meet requirements."}"
                     )
                     notificationRepository.save(notification)
+
+                    sendEvaluationChatRemark(
+                        verificationRequest.reviewedBy,
+                        student.user,
+                        "Rejected certificate '${certificate.title}'. Reason: ${request.remarks ?: "Does not meet requirements."}"
+                    )
                 } else if (request.status == VerificationStatus.NEED_TO_TALK) {
                     val notification = Notification(
                         user = student.user,
@@ -171,6 +204,12 @@ class VerificationServiceImpl(
                         message = "Teacher wants to talk regarding certificate '${certificate.title}'. Remarks: ${request.remarks ?: ""}"
                     )
                     notificationRepository.save(notification)
+
+                    sendEvaluationChatRemark(
+                        verificationRequest.reviewedBy,
+                        student.user,
+                        "Scheduled discussion for certificate '${certificate.title}'. Remarks: ${request.remarks ?: ""}"
+                    )
                 }
             }
             else -> {}
@@ -178,6 +217,26 @@ class VerificationServiceImpl(
 
         val saved = verificationRequestRepository.save(verificationRequest)
         return mapToResponse(saved)
+    }
+
+    private fun sendEvaluationChatRemark(teacherUser: User, studentUser: User, remark: String) {
+        val existing = conversationRepository.findDirectConversationBetween(teacherUser.id!!, studentUser.id!!)
+        val conversation = if (existing.isNotEmpty()) {
+            existing.first()
+        } else {
+            val newConv = Conversation(type = "DIRECT")
+            val saved = conversationRepository.save(newConv)
+            val p1 = ConversationParticipant(conversationId = saved.id!!, userId = teacherUser.id!!)
+            val p2 = ConversationParticipant(conversationId = saved.id!!, userId = studentUser.id!!)
+            conversationParticipantRepository.saveAll(listOf(p1, p2))
+            saved
+        }
+        val message = Message(
+            conversation = conversation,
+            sender = teacherUser,
+            content = remark
+        )
+        messageRepository.save(message)
     }
 
     override fun getTeacherAnalytics(teacherId: Long): TeacherAnalyticsResponse {
