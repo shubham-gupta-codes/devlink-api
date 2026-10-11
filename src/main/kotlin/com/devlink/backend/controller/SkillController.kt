@@ -32,6 +32,12 @@ class SkillController(
     fun getStudentApprovedSkills(@AuthenticationPrincipal principal: UserPrincipal): ResponseEntity<List<StudentSkillResponse>> =
         ResponseEntity.ok(skillService.getStudentApprovedSkills(principal.id))
 
+    @GetMapping("/student/{studentId}")
+    fun getStudentApprovedSkillsById(
+        @PathVariable studentId: Long
+    ): ResponseEntity<List<StudentSkillResponse>> =
+        ResponseEntity.ok(skillService.getStudentApprovedSkills(studentId))
+
     @GetMapping("/request/teacher")
     fun getTeacherPendingRequests(@AuthenticationPrincipal principal: UserPrincipal): ResponseEntity<List<SkillRequestResponse>> =
         ResponseEntity.ok(skillService.getTeacherPendingRequests(principal.id))

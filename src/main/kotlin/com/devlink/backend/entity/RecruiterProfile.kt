@@ -22,5 +22,12 @@ class RecruiterProfile(
 
     var designation: String? = null,
 
-    var contact: String? = null
+    var contact: String? = null,
+
+    var about: String? = null,
+
+    var website: String? = null,
+
+    @Column(nullable = false)
+    var verified: Boolean = false
 )

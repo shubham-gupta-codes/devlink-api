@@ -42,7 +42,10 @@ data class ProfileResponse(
 
     // Recruiter fields
     val companyName: String? = null,
-    val companyLogo: String? = null
+    val companyLogo: String? = null,
+    val about: String? = null,
+    val website: String? = null,
+    val verified: Boolean? = null
 )
 
 data class TeacherFeedbackResponse(
@@ -130,6 +133,7 @@ data class ProjectResponse(
     val studentUserId: Long,
     val studentUsername: String,
     val studentName: String,
+    val studentPhotoUrl: String? = null,
     val name: String,
     val description: String,
     val techStack: String,
@@ -149,6 +153,7 @@ data class ProjectCommentResponse(
     val userId: Long,
     val username: String,
     val name: String,
+    val photoUrl: String? = null,
     val content: String,
     val createdAt: Instant,
     val replies: List<ProjectCommentResponse> = emptyList()
@@ -159,6 +164,7 @@ data class CertificateResponse(
     val studentUserId: Long,
     val studentUsername: String,
     val studentName: String,
+    val studentPhotoUrl: String? = null,
     val title: String,
     val issuingOrg: String,
     val purpose: String,
@@ -196,5 +202,77 @@ data class StudentCountByLanguage(
     val language: String,
     val count: Long
 )
+
+data class JobResponse(
+    val id: Long,
+    val recruiterId: Long,
+    val recruiterCompanyName: String,
+    val recruiterCompanyLogo: String?,
+    val title: String,
+    val description: String,
+    val jobType: com.devlink.backend.enums.JobType,
+    val requiredSkills: List<String>,
+    val location: String,
+    val salaryRange: String?,
+    val deadline: Instant,
+    val startDate: Instant? = null,
+    val status: com.devlink.backend.enums.JobStatus,
+    val createdAt: Instant,
+    val applicantCount: Long = 0,
+    val hasApplied: Boolean = false
+)
+
+data class JobApplicationResponse(
+    val id: Long,
+    val jobId: Long,
+    val jobTitle: String,
+    val recruiterCompanyName: String,
+    val studentProfile: ProfileResponse,
+    val status: com.devlink.backend.enums.JobApplicationStatus,
+    val createdAt: Instant
+)
+
+data class SavedCandidateResponse(
+    val id: Long,
+    val studentProfile: ProfileResponse,
+    val jobId: Long?,
+    val jobTitle: String?,
+    val createdAt: Instant
+)
+
+data class AdminDashboardStats(
+    val totalStudents: Long,
+    val totalTeachers: Long,
+    val totalRecruiters: Long,
+    val totalProjects: Long,
+    val totalVerifiedCertificates: Long,
+    val pendingRecruiterApprovals: Long
+)
+
+data class AdminUserListItem(
+    val userId: Long,
+    val username: String,
+    val email: String,
+    val role: Role,
+    val enabled: Boolean,
+    val createdAt: Instant,
+    // Role-specific display fields
+    val displayName: String?,      // student name / company name
+    val department: String?,       // teacher dept
+    val companyName: String?,      // recruiter company
+    val verified: Boolean?         // recruiter verified
+)
+
+data class PendingRecruiterResponse(
+    val userId: Long,
+    val username: String,
+    val email: String,
+    val companyName: String,
+    val designation: String?,
+    val contact: String?,
+    val website: String?,
+    val joinedAt: Instant
+)
+
 
 

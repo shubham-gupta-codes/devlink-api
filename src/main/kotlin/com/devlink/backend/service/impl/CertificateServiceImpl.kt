@@ -4,7 +4,9 @@ import com.devlink.backend.dto.*
 import com.devlink.backend.entity.*
 import com.devlink.backend.enums.*
 import com.devlink.backend.repository.*
+import com.devlink.backend.service.AdminService
 import com.devlink.backend.service.CertificateService
+import com.devlink.backend.service.EmailService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -88,6 +90,7 @@ class CertificateServiceImpl(
             studentUserId = certificate.student.id!!,
             studentUsername = certificate.student.user.username,
             studentName = certificate.student.name,
+            studentPhotoUrl = certificate.student.photoUrl,
             title = certificate.title,
             issuingOrg = certificate.issuingOrg,
             purpose = certificate.purpose,
@@ -98,3 +101,4 @@ class CertificateServiceImpl(
         )
     }
 }
+

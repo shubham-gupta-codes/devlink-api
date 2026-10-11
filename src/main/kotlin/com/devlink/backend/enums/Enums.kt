@@ -2,19 +2,26 @@ package com.devlink.backend.enums
 
 enum class Course {
     BSC_IT,
+    BSC,
     BTECH,
     MTECH,
     MCA,
     BCA,
-    MSC
+    MSC,
+    OTHER
 }
 
 enum class Branch {
     IT,
     CS,
+    ECE,
+    EE,
+    ME,
+    CE,
     CYBER_SECURITY,
     AI,
-    DATA_SCIENCE
+    DATA_SCIENCE,
+    OTHER
 }
 
 enum class AcademicStatus {
@@ -74,4 +81,22 @@ enum class PointSource {
     VERIFIED_SKILL,
     VERIFIED_PROJECT,
     VERIFIED_CERTIFICATE
+}
+
+enum class JobType {
+    INTERNSHIP,
+    PART_TIME,
+    FULL_TIME,
+    CONTRACT
+}
+
+enum class JobStatus {
+    OPEN,
+    CLOSED
+}
+
+enum class JobApplicationStatus {
+    PENDING,
+    SHORTLISTED,
+    REJECTED
 }

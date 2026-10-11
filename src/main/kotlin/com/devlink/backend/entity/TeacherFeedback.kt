@@ -19,8 +19,11 @@ class TeacherFeedback(
     val teacher: TeacherProfile,
 
     @Column(nullable = false, length = 2000)
-    val content: String,
+    var content: String,
 
     @Column(name = "created_at", nullable = false)
-    val createdAt: Instant = Instant.now()
+    val createdAt: Instant = Instant.now(),
+
+    @Column(name = "updated_at", nullable = false)
+    var updatedAt: Instant = Instant.now()
 )

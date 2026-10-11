@@ -66,6 +66,8 @@ data class UpdateProfileRequest(
     // Recruiter profile fields
     val companyName: String? = null,
     val companyLogo: String? = null,
+    val about: String? = null,
+    val website: String? = null,
 
     // Social Links
     val socialLinks: List<SocialLinkRequest>? = null
@@ -166,3 +168,44 @@ data class ResetPasswordRequest(
     @field:Size(min = 8, message = "Password must be at least 8 characters")
     val newPassword: String
 )
+
+data class CreateJobRequest(
+    val title: String,
+    val description: String,
+    val jobType: com.devlink.backend.enums.JobType,
+    val requiredSkills: List<String>,
+    val location: String,
+    val salaryRange: String? = null,
+    val deadline: Instant,
+    val startDate: Instant? = null
+)
+
+data class UpdateJobRequest(
+    val title: String,
+    val description: String,
+    val jobType: com.devlink.backend.enums.JobType,
+    val requiredSkills: List<String>,
+    val location: String,
+    val salaryRange: String? = null,
+    val deadline: Instant,
+    val startDate: Instant? = null,
+    val status: com.devlink.backend.enums.JobStatus? = null
+)
+
+data class EvaluateApplicationRequest(
+    val status: com.devlink.backend.enums.JobApplicationStatus
+)
+
+data class CreateFeedbackRequest(
+    @field:NotBlank
+    val content: String
+)
+
+data class SuspendUserRequest(
+    val reason: String? = null
+)
+
+data class RejectUserRequest(
+    val reason: String
+)
+

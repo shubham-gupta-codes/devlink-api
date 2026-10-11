@@ -8,4 +8,8 @@ import java.util.Optional
 interface RecruiterProfileRepository : JpaRepository<RecruiterProfile, Long> {
     fun findByUser(user: User): Optional<RecruiterProfile>
     fun findByUserUsername(username: String): Optional<RecruiterProfile>
+    fun findByVerifiedFalse(): List<RecruiterProfile>
+    fun countByVerifiedFalse(): Long
+    fun findByUserId(userId: Long): RecruiterProfile?
 }
+

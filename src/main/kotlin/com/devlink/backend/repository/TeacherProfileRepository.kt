@@ -8,4 +8,6 @@ import java.util.Optional
 interface TeacherProfileRepository : JpaRepository<TeacherProfile, Long> {
     fun findByUser(user: User): Optional<TeacherProfile>
     fun findByUserUsername(username: String): Optional<TeacherProfile>
+    fun findByUserId(userId: Long): TeacherProfile?
 }
+

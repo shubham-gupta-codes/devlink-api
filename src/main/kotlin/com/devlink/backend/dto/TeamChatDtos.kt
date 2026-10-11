@@ -72,3 +72,7 @@ data class MessageResponse(
     val content: String,
     val createdAt: Instant
 )
+
+data class SendMessageRequest(
+    val content: String
+)

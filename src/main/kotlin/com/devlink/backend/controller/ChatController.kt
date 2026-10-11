@@ -32,4 +32,13 @@ class ChatController(
     ): ResponseEntity<ConversationResponse> {
         return ResponseEntity.ok(chatService.startDirectChat(principal.id, targetUsername))
     }
+
+    @PostMapping("/conversations/{conversationId}/messages")
+    fun sendMessage(
+        @AuthenticationPrincipal principal: UserPrincipal,
+        @PathVariable conversationId: Long,
+        @RequestBody request: SendMessageRequest
+    ): ResponseEntity<MessageResponse> {
+        return ResponseEntity.ok(chatService.sendMessage(principal.id, conversationId, request.content))
+    }
 }

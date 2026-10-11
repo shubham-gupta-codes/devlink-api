@@ -231,7 +231,7 @@ class SkillServiceImpl(
         val studentNotification = Notification(
             user = request.student.user,
             title = "Skill Approved!",
-            message = "Your skill request for \"${request.skill.name}\" was approved at $level level. +$points points awarded!"
+            message = "Your skill request for \"${request.skill.name}\" was approved at $level level by @${request.teacher.user.username}. +$points points awarded!"
         )
         notificationRepository.save(studentNotification)
 

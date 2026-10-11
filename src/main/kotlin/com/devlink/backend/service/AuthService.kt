@@ -40,9 +40,19 @@ class AuthService(
 
     @Transactional
     fun login(request: LoginRequest): LoginResponse {
+        val input = request.email.trim()
+        val user = userRepository.findByEmailIgnoreCase(input)
+            .orElseGet {
+                userRepository.findByEmail(input)
+                    .orElseGet {
+                        userRepository.findByUsername(input)
+                            .orElseThrow { InvalidCredentialsException() }
+                    }
+            }
+
         try {
             authenticationManager.authenticate(
-                UsernamePasswordAuthenticationToken(request.email, request.password)
+                UsernamePasswordAuthenticationToken(user.email, request.password)
             )
         } catch (ex: DisabledException) {
             throw UserDisabledException()
@@ -50,11 +60,11 @@ class AuthService(
             throw InvalidCredentialsException()
         }
 
-        otpService.generateAndSendOtp(request.email)
+        otpService.generateAndSendOtp(user.email)
 
         return LoginResponse(
-            message = "OTP sent to ${request.email}. Please verify to continue.",
-            email = request.email,
+            message = "OTP sent to ${user.email}. Please verify to continue.",
+            email = user.email,
             otpExpiryMinutes = otpExpiryMinutes
         )
     }
@@ -62,10 +72,17 @@ class AuthService(
     /** POST /api/user/verify — confirm the OTP, then issue access + refresh tokens. */
     @Transactional
     fun verifyOtpAndIssueTokens(request: VerifyOtpRequest): AuthResponse {
-        val user = userRepository.findByEmail(request.email)
-            .orElseThrow { InvalidCredentialsException() }
+        val input = request.email.trim()
+        val user = userRepository.findByEmailIgnoreCase(input)
+            .orElseGet {
+                userRepository.findByEmail(input)
+                    .orElseGet {
+                        userRepository.findByUsername(input)
+                            .orElseThrow { InvalidCredentialsException() }
+                    }
+            }
 
-        otpService.verifyOtp(request.email, request.otp)
+        otpService.verifyOtp(user.email, request.otp)
 
         return issueTokensFor(user)
     }

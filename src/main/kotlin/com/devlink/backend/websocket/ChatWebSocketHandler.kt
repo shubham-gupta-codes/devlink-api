@@ -31,7 +31,6 @@ class ChatWebSocketHandler(
 ) : TextWebSocketHandler() {
 
     private val userSessions = ConcurrentHashMap<Long, CopyOnWriteArrayList<WebSocketSession>>()
-
     override fun afterConnectionEstablished(session: WebSocketSession) {
         val userId = getUserIdFromSession(session)
         if (userId == null) {

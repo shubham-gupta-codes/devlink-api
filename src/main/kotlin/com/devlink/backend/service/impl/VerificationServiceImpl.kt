@@ -45,6 +45,9 @@ class VerificationServiceImpl(
             throw SecurityException("You are not assigned to review this request")
         }
 
+        val teacherProfile = teacherProfileRepository.findById(teacherId)
+            .orElseThrow { IllegalArgumentException("Teacher profile not found") }
+
         verificationRequest.status = request.status
         verificationRequest.remarks = request.remarks
         verificationRequest.reviewedAt = Instant.now()
@@ -78,8 +81,6 @@ class VerificationServiceImpl(
 
                     // Save teacher feedback
                     if (!request.remarks.isNullOrBlank()) {
-                        val teacherProfile = teacherProfileRepository.findById(teacherId)
-                            .orElseThrow { IllegalArgumentException("Teacher profile not found") }
                         teacherFeedbackRepository.save(
                             TeacherFeedback(
                                 student = student,
@@ -96,7 +97,7 @@ class VerificationServiceImpl(
                     val notification = Notification(
                         user = student.user,
                         title = "Project Approved!",
-                        message = "Your project '${project.name}' has been verified. Points earned: $pts."
+                        message = "Your project '${project.name}' has been verified by @${teacherProfile.user.username}. Points earned: $pts."
                     )
                     notificationRepository.save(notification)
 
@@ -156,9 +157,8 @@ class VerificationServiceImpl(
                     studentProfileRepository.save(student)
 
                     // Save teacher feedback
+                    // Save teacher feedback
                     if (!request.remarks.isNullOrBlank()) {
-                        val teacherProfile = teacherProfileRepository.findById(teacherId)
-                            .orElseThrow { IllegalArgumentException("Teacher profile not found") }
                         teacherFeedbackRepository.save(
                             TeacherFeedback(
                                 student = student,
@@ -175,7 +175,7 @@ class VerificationServiceImpl(
                     val notification = Notification(
                         user = student.user,
                         title = "Certificate Approved!",
-                        message = "Your certificate '${certificate.title}' has been verified. Points earned: $pts."
+                        message = "Your certificate '${certificate.title}' has been verified by @${teacherProfile.user.username}. Points earned: $pts."
                     )
                     notificationRepository.save(notification)
 

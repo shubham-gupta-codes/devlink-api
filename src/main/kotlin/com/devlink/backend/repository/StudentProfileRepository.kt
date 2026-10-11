@@ -12,6 +12,7 @@ import java.util.Optional
 interface StudentProfileRepository : JpaRepository<StudentProfile, Long> {
     fun findByUser(user: User): Optional<StudentProfile>
     fun findByUserUsername(username: String): Optional<StudentProfile>
+    fun findByUserId(userId: Long): StudentProfile?
 
     @Query("SELECT DISTINCT s FROM StudentProfile s " +
            "LEFT JOIN s.user u " +

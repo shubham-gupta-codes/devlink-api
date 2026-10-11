@@ -117,7 +117,8 @@ class ProfileServiceImpl(
                     .orElseThrow { ProfileNotFoundException(userId) }
 
                 if (request.bio != null) profile.bio = request.bio
-                // name, course, branch, admissionYear, semester, photoUrl, and contact are set by Admin and read-only.
+                if (request.photoUrl != null) profile.photoUrl = request.photoUrl
+                if (request.contact != null) profile.contact = request.contact
 
                 studentProfileRepository.save(profile)
 
@@ -128,6 +129,7 @@ class ProfileServiceImpl(
                     }
                     // Delete old social links
                     socialLinkRepository.deleteByUser(user)
+                    socialLinkRepository.flush()
                     // Insert new social links
                     val linksToSave = request.socialLinks.map {
                         SocialLink(user = user, platform = it.platform, url = it.url)
@@ -139,7 +141,17 @@ class ProfileServiceImpl(
                 throw IllegalArgumentException("Profile modifications are restricted. Contact administrator to request changes.")
             }
             Role.RECRUITER -> {
-                throw IllegalArgumentException("Profile modifications are restricted. Contact administrator to request changes.")
+                val profile = recruiterProfileRepository.findByUser(user)
+                    .orElseThrow { ProfileNotFoundException(userId) }
+
+                if (request.companyName != null) profile.companyName = request.companyName
+                if (request.companyLogo != null) profile.companyLogo = request.companyLogo
+                if (request.designation != null) profile.designation = request.designation
+                if (request.contact != null) profile.contact = request.contact
+                if (request.about != null) profile.about = request.about
+                if (request.website != null) profile.website = request.website
+
+                recruiterProfileRepository.save(profile)
             }
             Role.ADMIN -> {
                 throw ProfileNotFoundException(userId)
@@ -212,7 +224,10 @@ class ProfileServiceImpl(
             companyName = this.companyName,
             companyLogo = this.companyLogo,
             designation = this.designation,
-            contact = this.contact
+            contact = this.contact,
+            about = this.about,
+            website = this.website,
+            verified = this.verified
         )
     }
 

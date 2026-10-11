@@ -66,6 +66,31 @@ class ChatServiceImpl(
         return mapToConversationResponse(saved, userId)
     }
 
+    @Transactional
+    override fun sendMessage(userId: Long, conversationId: Long, content: String): MessageResponse {
+        val conversation = conversationRepository.findById(conversationId).orElseThrow { IllegalArgumentException("Conversation not found") }
+        val isParticipant = conversationParticipantRepository.existsByConversationIdAndUserId(conversationId, userId)
+        if (!isParticipant) {
+            throw IllegalArgumentException("User is not a participant in this conversation")
+        }
+        val sender = userRepository.findById(userId).orElseThrow { IllegalArgumentException("Sender user not found") }
+        val saved = messageRepository.save(
+            Message(
+                conversation = conversation,
+                sender = sender,
+                content = content
+            )
+        )
+        return MessageResponse(
+            id = saved.id!!,
+            conversationId = conversationId,
+            senderId = sender.id!!,
+            senderUsername = sender.username,
+            content = saved.content,
+            createdAt = saved.createdAt
+        )
+    }
+
     private fun mapToConversationResponse(c: Conversation, currentUserId: Long): ConversationResponse {
         val participants = conversationParticipantRepository.findByConversationId(c.id!!)
         

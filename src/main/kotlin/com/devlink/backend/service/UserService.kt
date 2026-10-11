@@ -6,6 +6,7 @@ import com.devlink.backend.enums.Role
 import com.devlink.backend.exception.EmailAlreadyExistsException
 import com.devlink.backend.exception.UsernameAlreadyExistsException
 import com.devlink.backend.repository.*
+import com.devlink.backend.service.EmailService
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -16,7 +17,8 @@ class UserService(
     private val studentProfileRepository: StudentProfileRepository,
     private val teacherProfileRepository: TeacherProfileRepository,
     private val recruiterProfileRepository: RecruiterProfileRepository,
-    private val passwordEncoder: PasswordEncoder
+    private val passwordEncoder: PasswordEncoder,
+    private val emailService: EmailService
 ) {
 
     @Transactional
@@ -57,6 +59,14 @@ class UserService(
             enabled = true
         )
         val savedUser = userRepository.save(user)
+
+        // Send welcome email with credentials to the new user's Gmail asynchronously
+        emailService.sendWelcomeEmail(
+            toEmail = request.email,
+            username = request.username,
+            password = request.password,   // plain-text, before hashing
+            role = request.role.name
+        )
 
         var profileResponse: ProfileResponse? = null
 
@@ -148,3 +158,4 @@ class UserService(
         profile = profileResponse
     )
 }
+

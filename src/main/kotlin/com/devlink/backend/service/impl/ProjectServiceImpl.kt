@@ -84,7 +84,16 @@ class ProjectServiceImpl(
 
     override fun getProjectFeed(userId: Long, filter: String): List<ProjectResponse> {
         val projects = when (filter.lowercase()) {
-            "trending" -> projectRepository.findTrendingProjects(VerificationStatus.APPROVED)
+            "trending" -> {
+                val allApproved = projectRepository.findByVerificationStatus(VerificationStatus.APPROVED)
+                val now = java.time.Instant.now()
+                allApproved.sortedByDescending { project ->
+                    val likes = project.likeCount
+                    val comments = project.commentCount
+                    val hoursSince = java.time.Duration.between(project.createdAt, now).toHours()
+                    (likes * 1.0 + comments * 2.0) / Math.pow((hoursSince + 2.0), 1.5)
+                }
+            }
             else -> projectRepository.findByVerificationStatus(VerificationStatus.APPROVED).sortedByDescending { it.createdAt }
         }
         return projects.map { mapToResponse(it, userId) }
@@ -194,6 +203,7 @@ class ProjectServiceImpl(
             studentUserId = project.student.id!!,
             studentUsername = project.student.user.username,
             studentName = project.student.name,
+            studentPhotoUrl = project.student.photoUrl,
             name = project.name,
             description = project.description,
             techStack = project.techStack,
@@ -209,9 +219,13 @@ class ProjectServiceImpl(
     }
 
     private fun mapCommentToResponse(comment: ProjectComment): ProjectCommentResponse {
-        val studentName = studentProfileRepository.findById(comment.user.id!!)
+        val studentProfile = studentProfileRepository.findById(comment.user.id!!)
+        val studentName = studentProfile
             .map { it.name }
             .orElse(comment.user.username)
+        val photoUrl = studentProfile
+            .map { it.photoUrl }
+            .orElse(null)
 
         return ProjectCommentResponse(
             id = comment.id!!,
@@ -219,6 +233,7 @@ class ProjectServiceImpl(
             userId = comment.user.id!!,
             username = comment.user.username,
             name = studentName,
+            photoUrl = photoUrl,
             content = comment.content,
             createdAt = comment.createdAt,
             replies = comment.replies.map { mapCommentToResponse(it) }
