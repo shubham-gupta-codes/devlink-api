@@ -10,7 +10,8 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/chat")
 class ChatController(
-    private val chatService: ChatService
+    private val chatService: ChatService,
+    private val chatWebSocketHandler: com.devlink.backend.websocket.ChatWebSocketHandler
 ) {
 
     @GetMapping("/inbox")
@@ -20,9 +21,10 @@ class ChatController(
 
     @GetMapping("/conversations/{conversationId}/messages")
     fun getMessages(
+        @AuthenticationPrincipal principal: UserPrincipal,
         @PathVariable conversationId: Long
     ): ResponseEntity<List<MessageResponse>> {
-        return ResponseEntity.ok(chatService.getConversationMessages(conversationId))
+        return ResponseEntity.ok(chatService.getConversationMessages(principal.id, conversationId))
     }
 
     @PostMapping("/conversations/direct")
@@ -39,6 +41,8 @@ class ChatController(
         @PathVariable conversationId: Long,
         @RequestBody request: SendMessageRequest
     ): ResponseEntity<MessageResponse> {
-        return ResponseEntity.ok(chatService.sendMessage(principal.id, conversationId, request.content))
+        val saved = chatService.sendMessage(principal.id, conversationId, request.content)
+        chatWebSocketHandler.broadcastMessage(saved)
+        return ResponseEntity.ok(saved)
     }
 }

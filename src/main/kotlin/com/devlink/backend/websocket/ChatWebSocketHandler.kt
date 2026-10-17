@@ -40,33 +40,27 @@ class ChatWebSocketHandler(
         userSessions.computeIfAbsent(userId) { CopyOnWriteArrayList() }.add(session)
     }
 
+    /**
+     * Inbound socket frames are intentionally ignored. Messages are persisted through the REST endpoint
+     * (POST /api/chat/conversations/{id}/messages) and then pushed to participants via [broadcastMessage].
+     * Persisting here as well used to store every message twice.
+     */
     override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
-        val senderId = getUserIdFromSession(session) ?: return
+        // no-op
+    }
+
+    /** Push an already-saved message to every connected session of every participant in the conversation. */
+    fun broadcastMessage(message: com.devlink.backend.dto.MessageResponse) {
         try {
-            val payload = objectMapper.readValue(message.payload, WsMessagePayload::class.java)
-            val conversation = conversationRepository.findById(payload.conversationId).orElse(null) ?: return
-            
-            val isParticipant = conversationParticipantRepository.existsByConversationIdAndUserId(payload.conversationId, senderId)
-            if (!isParticipant) return
+            val participants = conversationParticipantRepository.findByConversationId(message.conversationId)
 
-            val sender = userRepository.findById(senderId).orElse(null) ?: return
-
-            val savedMsg = Message(
-                conversation = conversation,
-                sender = sender,
-                content = payload.content
-            )
-            messageRepository.save(savedMsg)
-
-            val participants = conversationParticipantRepository.findByConversationId(payload.conversationId)
-            
             val responseMap = mapOf(
-                "id" to savedMsg.id,
-                "conversationId" to payload.conversationId,
-                "senderId" to sender.id,
-                "senderUsername" to sender.username,
-                "content" to savedMsg.content,
-                "createdAt" to savedMsg.createdAt.toString()
+                "id" to message.id,
+                "conversationId" to message.conversationId,
+                "senderId" to message.senderId,
+                "senderUsername" to message.senderUsername,
+                "content" to message.content,
+                "createdAt" to message.createdAt.toString()
             )
             val jsonMsg = TextMessage(objectMapper.writeValueAsString(responseMap))
 
@@ -74,7 +68,7 @@ class ChatWebSocketHandler(
                 val sessions = userSessions[part.userId] ?: continue
                 for (s in sessions) {
                     if (s.isOpen) {
-                        s.sendMessage(jsonMsg)
+                        synchronized(s) { s.sendMessage(jsonMsg) }
                     }
                 }
             }

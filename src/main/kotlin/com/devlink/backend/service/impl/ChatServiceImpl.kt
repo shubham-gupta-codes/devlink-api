@@ -26,7 +26,10 @@ class ChatServiceImpl(
             .sortedWith(compareByDescending<ConversationResponse> { it.lastMessageAt }.thenByDescending { it.id })
     }
 
-    override fun getConversationMessages(conversationId: Long): List<MessageResponse> {
+    override fun getConversationMessages(userId: Long, conversationId: Long): List<MessageResponse> {
+        if (!conversationParticipantRepository.existsByConversationIdAndUserId(conversationId, userId)) {
+            throw IllegalArgumentException("User is not a participant in this conversation")
+        }
         val messages = messageRepository.findByConversationIdOrderByCreatedAtAsc(conversationId)
         return messages.map { m ->
             MessageResponse(
