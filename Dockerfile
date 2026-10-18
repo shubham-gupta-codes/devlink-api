@@ -26,8 +26,8 @@ RUN mkdir -p uploads
 # Copy compiled JAR from builder stage
 COPY --from=builder /app/build/libs/*.jar app.jar
 
-# Dynamic port for Railway
+# Dynamic port for Render / Cloud hosts
 ENV PORT=8080
 EXPOSE 8080
 
-ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+ENTRYPOINT ["sh", "-c", "java -Djava.security.egd=file:/dev/./urandom -Dserver.port=${PORT:-8080} -jar app.jar"]

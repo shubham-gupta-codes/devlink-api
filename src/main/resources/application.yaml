@@ -46,6 +46,11 @@ app:
     expiry-minutes: 5
     max-attempts: 5
     length: 6
+  gmail:
+    client-id: ${GMAIL_CLIENT_ID:}
+    client-secret: ${GMAIL_CLIENT_SECRET:}
+    refresh-token: ${GMAIL_REFRESH_TOKEN:}
+    sender: ${GMAIL_SENDER:shubhamg3203068@gmail.com}
   bootstrap-admin:
     email: shubhamg3203068@gmail.com
     username: shubham

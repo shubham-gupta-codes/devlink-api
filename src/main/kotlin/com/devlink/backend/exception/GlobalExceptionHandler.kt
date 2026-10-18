@@ -2,6 +2,7 @@ package com.devlink.backend.exception
 
 import com.devlink.backend.dto.ApiError
 import jakarta.servlet.http.HttpServletRequest
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.authentication.BadCredentialsException
@@ -11,6 +12,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
+
+    private val log = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
 
     @ExceptionHandler(
         EmailAlreadyExistsException::class,
@@ -58,6 +61,12 @@ class GlobalExceptionHandler {
         val message = ex.bindingResult.fieldErrors
             .joinToString("; ") { "${it.field}: ${it.defaultMessage}" }
         return build(HttpStatus.BAD_REQUEST, message, req)
+    }
+
+    @ExceptionHandler(Exception::class)
+    fun handleAllUncaughtException(ex: Exception, req: HttpServletRequest): ResponseEntity<ApiError> {
+        log.error("Unhandled error processing request to {}: {}", req.requestURI, ex.message, ex)
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, ex.message ?: "An unexpected internal server error occurred", req)
     }
 
     private fun build(status: HttpStatus, message: String?, req: HttpServletRequest): ResponseEntity<ApiError> =

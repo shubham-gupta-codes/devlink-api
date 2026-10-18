@@ -15,7 +15,9 @@ class JwtService(
     @Value("\${app.jwt.access-token-expiry-ms}") private val accessTokenExpiryMs: Long
 ) {
     private val signingKey: SecretKey by lazy {
-        Keys.hmacShaKeyFor(secret.toByteArray())
+        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        val keyBytes = digest.digest(secret.toByteArray(java.nio.charset.StandardCharsets.UTF_8))
+        Keys.hmacShaKeyFor(keyBytes)
     }
 
     /** Access token — short-lived, carries email (subject) + role for authorization checks. */

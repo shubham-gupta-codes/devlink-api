@@ -41,7 +41,10 @@ class FileController {
     }
 
     @GetMapping("/download/{filename:.+}")
-    fun downloadFile(@PathVariable filename: String): ResponseEntity<Resource> {
+    fun downloadFile(
+        @PathVariable filename: String,
+        @RequestParam(value = "name", required = false) displayName: String?
+    ): ResponseEntity<Resource> {
         val filePath = uploadDir.resolve(filename).normalize()
         val resource = UrlResource(filePath.toUri())
 
@@ -49,15 +52,36 @@ class FileController {
             return ResponseEntity.notFound().build()
         }
 
-        val contentType = try {
-            Files.probeContentType(filePath) ?: "application/octet-stream"
-        } catch (e: Exception) {
-            "application/octet-stream"
+        val ext = filename.substringAfterLast('.', "").lowercase()
+        val mediaType = when (ext) {
+            "pdf" -> MediaType.APPLICATION_PDF
+            "png" -> MediaType.IMAGE_PNG
+            "jpg", "jpeg" -> MediaType.IMAGE_JPEG
+            "gif" -> MediaType.IMAGE_GIF
+            "webp" -> MediaType.parseMediaType("image/webp")
+            "svg" -> MediaType.parseMediaType("image/svg+xml")
+            "txt" -> MediaType.TEXT_PLAIN
+            else -> try {
+                MediaType.parseMediaType(Files.probeContentType(filePath) ?: "application/octet-stream")
+            } catch (e: Exception) {
+                MediaType.APPLICATION_OCTET_STREAM
+            }
+        }
+
+        val finalDownloadName = if (!displayName.isNullOrBlank()) {
+            val clean = displayName.replace(Regex("[^a-zA-Z0-9._ -]"), "_")
+            if (!clean.endsWith(".$ext", ignoreCase = true) && ext.isNotBlank()) {
+                "$clean.$ext"
+            } else {
+                clean
+            }
+        } else {
+            filename
         }
 
         return ResponseEntity.ok()
-            .contentType(MediaType.parseMediaType(contentType))
-            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$filename\"")
+            .contentType(mediaType)
+            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$finalDownloadName\"")
             .body(resource)
     }
 }
