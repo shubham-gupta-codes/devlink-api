@@ -117,7 +117,8 @@ data class SkillRequestResponse(
     val meetingDate: Instant?,
     val meetingNotes: String?,
     val rejectionReason: String?,
-    val createdAt: Instant
+    val createdAt: Instant,
+    val studentPhotoUrl: String? = null
 )
 
 data class NotificationResponse(

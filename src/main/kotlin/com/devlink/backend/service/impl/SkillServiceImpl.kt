@@ -283,7 +283,8 @@ class SkillServiceImpl(
             meetingDate = this.meetingDate,
             meetingNotes = this.meetingNotes,
             rejectionReason = this.rejectionReason,
-            createdAt = this.createdAt
+            createdAt = this.createdAt,
+            studentPhotoUrl = this.student.photoUrl
         )
     }
 }

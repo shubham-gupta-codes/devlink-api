@@ -21,6 +21,7 @@ class ProfileServiceImpl(
     private val recruiterProfileRepository: RecruiterProfileRepository,
     private val socialLinkRepository: SocialLinkRepository,
     private val studentBadgeRepository: StudentBadgeRepository,
+    private val studentSkillRepository: StudentSkillRepository,
     private val teacherFeedbackRepository: TeacherFeedbackRepository,
     private val passwordEncoder: PasswordEncoder
 ) : ProfileService {
@@ -263,19 +264,69 @@ class ProfileServiceImpl(
         skill: String?,
         badge: String?
     ): List<ProfileResponse> {
-        val studentProfiles = studentProfileRepository.searchStudents(
-            query = query?.trim()?.takeIf { it.isNotBlank() },
-            course = course,
-            branch = branch,
-            admissionYear = admissionYear,
-            semester = semester,
-            skill = skill?.trim()?.takeIf { it.isNotBlank() },
-            badge = badge?.trim()?.takeIf { it.isNotBlank() }
-        )
-        return studentProfiles.map { student ->
+        val cleanQuery = query?.trim()?.lowercase()?.takeIf { it.isNotBlank() }
+        val cleanSkill = skill?.trim()?.lowercase()?.takeIf { it.isNotBlank() }
+        val cleanBadge = badge?.trim()?.lowercase()?.takeIf { it.isNotBlank() }
+
+        var profiles = studentProfileRepository.findAll()
+
+        if (cleanQuery != null) {
+            profiles = profiles.filter { student ->
+                val nameMatch = student.name.lowercase().contains(cleanQuery)
+                val userMatch = student.user.username.lowercase().contains(cleanQuery)
+                val emailMatch = student.user.email.lowercase().contains(cleanQuery)
+                nameMatch || userMatch || emailMatch
+            }
+        }
+
+        if (course != null) {
+            profiles = profiles.filter { it.course == course }
+        }
+        if (branch != null) {
+            profiles = profiles.filter { it.branch == branch }
+        }
+        if (admissionYear != null) {
+            profiles = profiles.filter { it.admissionYear == admissionYear }
+        }
+        if (semester != null) {
+            profiles = profiles.filter { it.semester == semester }
+        }
+
+        if (cleanSkill != null) {
+            val studentIdsWithSkill = studentSkillRepository.findAll()
+                .filter { it.skill.name.lowercase().contains(cleanSkill) }
+                .mapNotNull { it.student.id }
+                .toSet()
+            profiles = profiles.filter { studentIdsWithSkill.contains(it.id) }
+        }
+
+        if (cleanBadge != null) {
+            val studentIdsWithBadge = studentBadgeRepository.findAll()
+                .filter { it.badgeName.lowercase().contains(cleanBadge) }
+                .mapNotNull { it.student.id }
+                .toSet()
+            profiles = profiles.filter { studentIdsWithBadge.contains(it.id) }
+        }
+
+        val studentResults = profiles.sortedByDescending { it.totalPoints ?: 0 }.map { student ->
             val user = student.user
             val socialLinks = socialLinkRepository.findByUser(user)
             student.toResponse(user.username, user.email, socialLinks)
         }
+
+        // If searching with a query and no student-specific filters are active, also include matching non-student users (teachers, recruiters)
+        // so that the search works across the platform (such as chat user discovery)
+        if (cleanQuery != null && course == null && branch == null && admissionYear == null && semester == null && cleanSkill == null && cleanBadge == null) {
+            val otherUsers = userRepository.findAll().filter { u ->
+                u.role != Role.STUDENT && (
+                    u.username.lowercase().contains(cleanQuery) ||
+                    u.email.lowercase().contains(cleanQuery)
+                )
+            }.map { fetchProfileResponse(it) }
+
+            return (studentResults + otherUsers)
+        }
+
+        return studentResults
     }
 }
