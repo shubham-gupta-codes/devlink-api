@@ -67,6 +67,7 @@ class SecurityConfig(
                         "/api/user/forgot-password/**",
                         "/api/files/**",
                         "/actuator/health",
+                        "/ws/**",
                         "/ws/chat/**",
                         "/ws/chat"
                     ).permitAll()

@@ -12,7 +12,7 @@ class WebSocketConfig(
 ) : WebSocketConfigurer {
 
     override fun registerWebSocketHandlers(registry: WebSocketHandlerRegistry) {
-        registry.addHandler(chatWebSocketHandler, "/ws/chat")
-            .setAllowedOrigins("*")
+        registry.addHandler(chatWebSocketHandler, "/ws/chat", "/ws/chat/**")
+            .setAllowedOriginPatterns("*")
     }
 }
