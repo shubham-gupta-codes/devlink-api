@@ -1,5 +1,8 @@
 package com.devlink.backend.controller
 
+import com.devlink.backend.entity.StoredFile
+import com.devlink.backend.repository.StoredFileRepository
+import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.Resource
 import org.springframework.core.io.UrlResource
 import org.springframework.http.HttpHeaders
@@ -13,7 +16,9 @@ import java.util.UUID
 
 @RestController
 @RequestMapping("/api/files")
-class FileController {
+class FileController(
+    private val storedFileRepository: StoredFileRepository
+) {
 
     private val uploadDir = Paths.get("uploads")
 
@@ -34,21 +39,60 @@ class FileController {
         val newFilename = "${UUID.randomUUID()}${if (extension.isNotBlank()) ".$extension" else ""}"
         val targetPath = uploadDir.resolve(newFilename)
 
-        Files.copy(file.inputStream, targetPath)
+        val bytes = file.bytes
+        val rawContentType = file.contentType ?: Files.probeContentType(targetPath) ?: "application/octet-stream"
+
+        // 1. Cache on disk
+        Files.write(targetPath, bytes)
+
+        // 2. Persist in PostgreSQL (survives container restarts and redeployments on Render)
+        try {
+            storedFileRepository.save(
+                StoredFile(
+                    filename = newFilename,
+                    contentType = rawContentType,
+                    data = bytes
+                )
+            )
+        } catch (e: Exception) {
+            // Log warning but allow cached file to work
+            System.err.println("Warning: could not persist file $newFilename to DB: ${e.message}")
+        }
 
         val downloadUrl = "/api/files/download/$newFilename"
         return ResponseEntity.ok(mapOf("url" to downloadUrl, "filename" to newFilename))
     }
 
-    @GetMapping("/download/{filename:.+}")
+    @GetMapping("/download/{filename}")
     fun downloadFile(
         @PathVariable filename: String,
         @RequestParam(value = "name", required = false) displayName: String?
     ): ResponseEntity<Resource> {
         val filePath = uploadDir.resolve(filename).normalize()
-        val resource = UrlResource(filePath.toUri())
 
-        if (!resource.exists() || !resource.isReadable) {
+        var resource: Resource? = null
+        var resolvedContentType: String? = null
+
+        // 1. Check local disk cache
+        if (Files.exists(filePath) && Files.isReadable(filePath)) {
+            resource = UrlResource(filePath.toUri())
+        }
+
+        // 2. If not on disk (e.g. fresh Render container after deploy), load from PostgreSQL
+        if (resource == null) {
+            val dbFileOpt = storedFileRepository.findByFilename(filename)
+            if (dbFileOpt.isPresent) {
+                val dbFile = dbFileOpt.get()
+                resolvedContentType = dbFile.contentType
+                // Re-hydrate disk cache for fast subsequent reads
+                try {
+                    Files.write(filePath, dbFile.data)
+                } catch (_: Exception) {}
+                resource = ByteArrayResource(dbFile.data)
+            }
+        }
+
+        if (resource == null) {
             return ResponseEntity.notFound().build()
         }
 
@@ -62,7 +106,8 @@ class FileController {
             "svg" -> MediaType.parseMediaType("image/svg+xml")
             "txt" -> MediaType.TEXT_PLAIN
             else -> try {
-                MediaType.parseMediaType(Files.probeContentType(filePath) ?: "application/octet-stream")
+                val probed = resolvedContentType ?: Files.probeContentType(filePath)
+                MediaType.parseMediaType(probed ?: "application/octet-stream")
             } catch (e: Exception) {
                 MediaType.APPLICATION_OCTET_STREAM
             }
