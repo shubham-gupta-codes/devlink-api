@@ -108,6 +108,34 @@ class JobController(
         return ResponseEntity.ok(jobService.getSavedCandidates(principal.id))
     }
 
+    @DeleteMapping("/shortlist")
+    fun removeShortlistedCandidate(
+        @AuthenticationPrincipal principal: UserPrincipal,
+        @RequestParam studentId: Long,
+        @RequestParam(required = false) jobId: Long?
+    ): ResponseEntity<Void> {
+        jobService.removeSavedCandidate(principal.id, studentId, jobId)
+        return ResponseEntity.noContent().build()
+    }
+
+    @DeleteMapping("/shortlist/{id}")
+    fun removeShortlistedCandidateById(
+        @AuthenticationPrincipal principal: UserPrincipal,
+        @PathVariable id: Long
+    ): ResponseEntity<Void> {
+        jobService.removeSavedCandidateById(principal.id, id)
+        return ResponseEntity.noContent().build()
+    }
+
+    @DeleteMapping("/shortlist/student/{studentId}")
+    fun removeCandidateFromAllShortlists(
+        @AuthenticationPrincipal principal: UserPrincipal,
+        @PathVariable studentId: Long
+    ): ResponseEntity<Void> {
+        jobService.removeCandidateFromAllShortlists(principal.id, studentId)
+        return ResponseEntity.noContent().build()
+    }
+
     @GetMapping("/{id}/recommended")
     fun getRecommendedCandidates(
         @PathVariable id: Long,

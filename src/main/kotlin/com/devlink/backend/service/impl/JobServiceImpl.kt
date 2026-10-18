@@ -296,6 +296,47 @@ class JobServiceImpl(
         }
     }
 
+    @Transactional
+    override fun removeSavedCandidate(recruiterId: Long, studentId: Long, jobId: Long?) {
+        val recruiter = userRepository.findById(recruiterId)
+            .orElseThrow { ProfileNotFoundException(recruiterId) }
+        val student = userRepository.findById(studentId)
+            .orElseThrow { ProfileNotFoundException(studentId) }
+
+        if (jobId != null) {
+            val job = jobRepository.findById(jobId).orElse(null)
+            if (job != null) {
+                savedCandidateRepository.findByRecruiterAndStudentAndJob(recruiter, student, job).ifPresent {
+                    savedCandidateRepository.delete(it)
+                }
+            }
+        } else {
+            val generalSaved = savedCandidateRepository.findByRecruiterAndStudentAndJob(recruiter, student, null)
+            if (generalSaved.isPresent) {
+                savedCandidateRepository.delete(generalSaved.get())
+            } else {
+                val allSaved = savedCandidateRepository.findAllByRecruiterAndStudent(recruiter, student)
+                savedCandidateRepository.deleteAll(allSaved)
+            }
+        }
+    }
+
+    @Transactional
+    override fun removeSavedCandidateById(recruiterId: Long, savedCandidateId: Long) {
+        val saved = savedCandidateRepository.findById(savedCandidateId).orElse(null) ?: return
+        if (saved.recruiter.id == recruiterId) {
+            savedCandidateRepository.delete(saved)
+        }
+    }
+
+    @Transactional
+    override fun removeCandidateFromAllShortlists(recruiterId: Long, studentId: Long) {
+        val recruiter = userRepository.findById(recruiterId).orElse(null) ?: return
+        val student = userRepository.findById(studentId).orElse(null) ?: return
+        val all = savedCandidateRepository.findAllByRecruiterAndStudent(recruiter, student)
+        savedCandidateRepository.deleteAll(all)
+    }
+
     override fun getRecommendedCandidates(recruiterId: Long, jobId: Long): List<ProfileResponse> {
         val job = jobRepository.findById(jobId)
             .orElseThrow { IllegalArgumentException("Job not found: $jobId") }

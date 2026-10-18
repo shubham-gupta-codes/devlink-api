@@ -13,4 +13,5 @@ interface SavedCandidateRepository : JpaRepository<SavedCandidate, Long> {
     fun findAllByJob(job: JobPosting): List<SavedCandidate>
     fun findByRecruiterAndStudentAndJob(recruiter: User, student: User, job: JobPosting?): Optional<SavedCandidate>
     fun existsByRecruiterAndStudentAndJob(recruiter: User, student: User, job: JobPosting?): Boolean
+    fun findAllByRecruiterAndStudent(recruiter: User, student: User): List<SavedCandidate>
 }

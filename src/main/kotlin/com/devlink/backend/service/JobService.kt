@@ -19,6 +19,9 @@ interface JobService {
     
     fun shortlistCandidate(recruiterId: Long, studentId: Long, jobId: Long?): SavedCandidateResponse
     fun getSavedCandidates(recruiterId: Long): List<SavedCandidateResponse>
+    fun removeSavedCandidate(recruiterId: Long, studentId: Long, jobId: Long?)
+    fun removeSavedCandidateById(recruiterId: Long, savedCandidateId: Long)
+    fun removeCandidateFromAllShortlists(recruiterId: Long, studentId: Long)
     
     fun getRecommendedCandidates(recruiterId: Long, jobId: Long): List<ProfileResponse>
 }
